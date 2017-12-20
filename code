@@ -1,0 +1,54 @@
+# _*_ coding:utf-8 _*_
+import xlrd
+import pymysql
+import os
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+'''
+使用xlrd时报错 一堆2 4的那种 原因为该第三方库存在bug 找到库文件抛出异常的点 注释掉函数内抛异常的三行代码即可
+'''
+
+#建立一个MySQL连接
+database = pymysql.connect (host='192.168.3.1', user='zwj', password='123456', db='topcompanyinfo', charset='utf8')
+# 获得游标对象, 用于逐行遍历数据库数据
+cursor = database.cursor()
+#excel表名规律 code+_main_year.xls
+
+# 读取该excel文件
+book = xlrd.open_workbook(r"f:/V3.xlsx")
+# 文件的sheet名 我的一个excel文件中只包含一个Worksheet
+sheet = book.sheet_by_name("Sheet1")
+# 创建一个for循环迭代读取xls文件每行数据的, 从第二行开始是要跳过标题
+# 行列这里定义反了 变量名不对 将就着看
+rows = sheet.nrows
+cols = sheet.ncols
+# r取(2,rows+1)本来就是反的
+for r in range(2, rows+1):
+    L1_table = sheet.cell(r, 0).value
+    L1_key = sheet.cell(r, 1).value
+    L2_table = sheet.cell(r, 3).value
+    L2_leftkey = sheet.cell(r, 4).value
+    L2_rightkey = sheet.cell(r, 5).value
+    L3_table = sheet.cell(r, 7).value
+    L3_key = sheet.cell(r, 8).value
+
+    query = "INSERT INTO level_two" \
+            "(L1_table,L1_key,L2_table,L2_leftkey,L2_rightkey,L3_table,L3_key) " \
+            "VALUES ('%s','%s','%s','%s','%s','%s','%s')"%(L1_table,L1_key,L2_table,L2_leftkey,L2_rightkey,L3_table,L3_key)
+    print(query)
+      # 执行sql语句
+    cursor.execute(query)
+    database.commit()
+
+# 关闭游标
+cursor.close()
+
+# 关闭数据库连接
+database.close()
+
+# 打印结果
+print ""
+print "Done! "
+print ""
